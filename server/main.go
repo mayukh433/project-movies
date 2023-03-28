@@ -9,6 +9,7 @@ import (
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"log"
+	"moviesapp/config"
 	gapi "moviesapp/grpc-gateway"
 	"moviesapp/services"
 	pb "moviesapp/v1"
@@ -18,10 +19,6 @@ import (
 	"time"
 )
 
-const (
-	port = ":8000"
-)
-
 var (
 	ctx          context.Context
 	movieDB      *gorm.DB
@@ -29,16 +26,15 @@ var (
 	wg           sync.WaitGroup
 )
 
-const (
-	DB_USERNAME = "root"
-	DB_PASSWORD = "test123"
-	DB_HOST     = "localhost"
-	DB_PORT     = "3306"
-	DB_NAME     = "grpcproj"
-)
-
 func startGrpcServer(movieDB *gorm.DB, movieService services.MovieService) {
-	lis, err := net.Listen("tcp", ":8000")
+
+	config, err := config.LoadConfig(".")
+
+	if err != nil {
+		log.Printf("cannot load config:", err)
+	}
+
+	lis, err := net.Listen("tcp", config.SERVERPORT)
 	if err != nil {
 		log.Printf("failed to listen")
 	}
@@ -62,28 +58,35 @@ func startGrpcServer(movieDB *gorm.DB, movieService services.MovieService) {
 			fmt.Printf("Failed to list server", err)
 		}
 	}()
-	log.Printf("Server listening on localhost:8000")
+	log.Printf("Server listening on %s", config.SERVERPORT)
 	wg.Done()
 
 }
 
 func startRestServer() {
 
-	mux := runtime.NewServeMux()
+	config, err := config.LoadConfig(".")
 
-	err := pb.RegisterMovieServiceHandlerFromEndpoint(ctx, mux, "localhost:8000", []grpc.DialOption{grpc.WithTransportCredentials(insecure.NewCredentials())})
+	if err != nil {
+		log.Printf("cannot load config:", err)
+	}
+
+	address := config.HOST + config.SERVERPORT
+	port := config.GATEWAYPORT
+
+	mux := runtime.NewServeMux()
+	err = pb.RegisterMovieServiceHandlerFromEndpoint(ctx, mux, address, []grpc.DialOption{grpc.WithTransportCredentials(insecure.NewCredentials())})
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	port := ":8081"
 
 	log.Println("Serving gateway on connection ")
 	err = http.ListenAndServe(port, mux)
 	if err != nil {
 		log.Fatal(err)
 	}
-	log.Println("Listening on port 8081")
+
+	log.Printf("Listening on port ", port)
 	wg.Done()
 }
 
@@ -91,14 +94,19 @@ func main() {
 
 	ctx = context.TODO()
 	//Config file
-	dsn := DB_USERNAME + ":" + DB_PASSWORD + "@tcp" + "(" + DB_HOST + ":" + DB_PORT + ")/" + DB_NAME + "?" + "parseTime=true&loc=Local"
+	config, err := config.LoadConfig(".")
 
+	if err != nil {
+		log.Printf("cannot load config:", err)
+	}
+
+	dsn := config.DBUSERNAME + ":" + config.DBPASSWORD + "@tcp" + "(" + config.DBHOST + ":" + config.DBPORT + ")/" + config.DBNAME + "?" + "parseTime=true&loc=Local"
 	movieDB, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
 
 	//movieDB.AutoMigrate(&models.Movie{})
 
 	if err != nil {
-		log.Printf("Couldn't connect to database", err)
+		log.Printf("Couldn't connect to database", err, err)
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
@@ -112,6 +120,5 @@ func main() {
 	// Initializing a REST server
 	startRestServer()
 	wg.Wait()
-	//time.Sleep(10 * time.Second)
 
 }

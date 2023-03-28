@@ -2,7 +2,6 @@ package grpc_gateway
 
 import (
 	"context"
-	"fmt"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
 	"gorm.io/gorm"
@@ -68,7 +67,6 @@ func (movieServer *MovieServer) CreateMovie(ctx context.Context, request *pb.Cre
 		Genre:    request.GetGenre(),
 		Rating:   request.GetRating(),
 	}
-	fmt.Printf("Created Movie %v", movie)
 
 	movie, err := movieServer.movieService.CreateMovie(movie)
 	if err != nil {
