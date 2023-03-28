@@ -2,10 +2,10 @@ package services
 
 import (
 	"context"
+	"github.com/moviesapp/models"
+	pb "github.com/moviesapp/v1"
 	"gorm.io/gorm"
 	"log"
-	"moviesapp/models"
-	pb "moviesapp/v1"
 	"time"
 )
 
@@ -79,6 +79,7 @@ func (m *MovieServiceImpl) DeleteMovie(id string) (*pb.Status, error) {
 
 	status := &pb.Status{
 		Success: true,
+		Isbn:    id,
 	}
 	success := status.GetSuccess()
 
@@ -93,6 +94,7 @@ func (m *MovieServiceImpl) DeleteMovie(id string) (*pb.Status, error) {
 
 	status = &pb.Status{
 		Success: success,
+		Isbn:    id,
 	}
 	return status, nil
 }

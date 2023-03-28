@@ -1,8 +1,8 @@
 package services
 
 import (
-	"moviesapp/models"
-	pb "moviesapp/v1"
+	"github.com/moviesapp/models"
+	pb "github.com/moviesapp/v1"
 )
 
 type MovieService interface {

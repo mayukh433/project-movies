@@ -2,13 +2,13 @@ package grpc_gateway
 
 import (
 	"context"
+	"github.com/moviesapp/models"
+	"github.com/moviesapp/services"
+	pb "github.com/moviesapp/v1"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
 	"gorm.io/gorm"
 	"log"
-	"moviesapp/models"
-	"moviesapp/services"
-	pb "moviesapp/v1"
 )
 
 type MovieServer struct {

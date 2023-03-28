@@ -46,6 +46,7 @@ message DeleteMovieRequest {
 
 message Status {
   bool success = 1;
+  string isbn = 2;
 }
 
 service MovieService {
