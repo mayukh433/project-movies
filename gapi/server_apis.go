@@ -1,4 +1,4 @@
-package grpc_gateway
+package gapi
 
 import (
 	"context"
@@ -17,17 +17,17 @@ type MovieServer struct {
 	movieService services.MovieService
 }
 
-func NewGRpcMovieServer(movieDB *gorm.DB, movieService services.MovieService) (*MovieServer, error) {
+func NewGRpcMovieServer(movieDB *gorm.DB, movieService services.MovieService) *MovieServer {
 
 	movieServer := &MovieServer{
 		movieDB:      movieDB,
 		movieService: movieService,
 	}
 
-	return movieServer, nil
+	return movieServer
 }
 
-// GetMovies Request
+// Server processes request from the client through the REST server and forwards it to the service layer
 func (movieServer *MovieServer) GetMovies(empty *pb.Empty, stream pb.MovieService_GetMoviesServer) error {
 
 	allMovies, err := movieServer.movieService.GetMovies()
@@ -74,7 +74,7 @@ func (movieServer *MovieServer) CreateMovie(ctx context.Context, request *pb.Cre
 		return nil, err
 	}
 
-	var newMovie = &pb.Movie{
+	return &pb.Movie{
 		Isbn:      movie.Isbn,
 		Title:     movie.Title,
 		Director:  movie.Director,
@@ -82,9 +82,7 @@ func (movieServer *MovieServer) CreateMovie(ctx context.Context, request *pb.Cre
 		Rating:    movie.Rating,
 		CreatedAt: timestamppb.New(movie.CreatedAt),
 		UpdatedAt: timestamppb.New(movie.UpdatedAt),
-	}
-
-	return newMovie, nil
+	}, nil
 }
 
 // GetMovieRequest
@@ -102,7 +100,7 @@ func (movieServer *MovieServer) GetMovieById(ctx context.Context, request *pb.Ge
 		return &pb.Movie{}, err
 	}
 
-	res := &pb.Movie{
+	return &pb.Movie{
 		Isbn:      newMovie.Isbn,
 		Title:     newMovie.Title,
 		Director:  newMovie.Director,
@@ -110,9 +108,7 @@ func (movieServer *MovieServer) GetMovieById(ctx context.Context, request *pb.Ge
 		Rating:    newMovie.Rating,
 		CreatedAt: timestamppb.New(newMovie.CreatedAt),
 		UpdatedAt: timestamppb.New(newMovie.UpdatedAt),
-	}
-
-	return res, nil
+	}, nil
 }
 
 // UpdateMovie Request
@@ -137,7 +133,7 @@ func (movieServer *MovieServer) UpdateMovie(ctx context.Context, request *pb.Upd
 		log.Printf("Unable to update entry", err)
 	}
 
-	res := &pb.Movie{
+	return &pb.Movie{
 		Isbn:      newMovie.Isbn,
 		Title:     newMovie.Title,
 		Director:  newMovie.Director,
@@ -145,9 +141,7 @@ func (movieServer *MovieServer) UpdateMovie(ctx context.Context, request *pb.Upd
 		Rating:    newMovie.Rating,
 		CreatedAt: timestamppb.New(newMovie.CreatedAt),
 		UpdatedAt: timestamppb.New(newMovie.UpdatedAt),
-	}
-
-	return res, nil
+	}, nil
 }
 
 // DeleteMovie Request

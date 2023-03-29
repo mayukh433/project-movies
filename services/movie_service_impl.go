@@ -9,16 +9,18 @@ import (
 	"time"
 )
 
+// Embeds the DB connection object and the underlying context
 type MovieServiceImpl struct {
 	movieDB *gorm.DB
 	ctx     context.Context
 }
 
+// New Instance of the above defined type
 func NewMovieService(movieDB *gorm.DB, ctx context.Context) MovieService {
 	return &MovieServiceImpl{movieDB, ctx}
 }
 
-// implementing Create method to the above defined struct
+// implementing the MovieService interface by implementing each method one by one
 func (m *MovieServiceImpl) CreateMovie(movie *models.Movie) (*models.Movie, error) {
 
 	movie.CreatedAt = time.Now()
@@ -34,11 +36,12 @@ func (m *MovieServiceImpl) CreateMovie(movie *models.Movie) (*models.Movie, erro
 	return movie, nil
 }
 
-// adding Update function to the above defined struct
 func (m *MovieServiceImpl) UpdateMovie(id string, update_movie *models.Movie) (*models.Movie, error) {
 
-	update_movie.UpdatedAt = time.Now()
 	movie := &models.Movie{Isbn: id}
+	update_movie.CreatedAt = movie.CreatedAt
+	update_movie.UpdatedAt = time.Now()
+
 	m.movieDB.Model(movie).Updates(update_movie)
 
 	return update_movie, nil
